@@ -10,6 +10,8 @@ import HandTracker, {
   TrackingData,
 } from "./HandTracker";
 
+import AiScene from "./AiScene";
+
 type VisionStatus = {
   gesture: string;
   hand: string;
@@ -277,7 +279,9 @@ export default function Home() {
 
   function closeAiLab() {
     setAiLabOpen(false);
+
     setSelectedCard(null);
+
     setHoveredCard(null);
 
     hoveredRef.current =
@@ -286,6 +290,8 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
+
+      {/* Gesture cursor */}
       <div
         ref={cursorRef}
         className="
@@ -307,6 +313,8 @@ export default function Home() {
       />
 
       <section className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10">
+
+        {/* Header */}
         <header className="mb-10">
           <p className="mb-2 text-sm tracking-[0.35em] text-cyan-400">
             COMPUTER VISION EXPERIENCE
@@ -323,8 +331,11 @@ export default function Home() {
           </p>
         </header>
 
+        {/* Camera + status */}
         <div className="grid flex-1 gap-6 lg:grid-cols-[2fr_1fr]">
+
           <section className="rounded-3xl border border-white/10 bg-white/5 p-4">
+
             <div className="mb-4">
               <h2 className="text-lg font-semibold">
                 Live Camera
@@ -341,15 +352,20 @@ export default function Home() {
                 handleTrackingFrame
               }
             />
+
           </section>
 
           <aside className="flex flex-col gap-6">
+
+            {/* Live status */}
             <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+
               <p className="mb-5 text-xs tracking-[0.3em] text-cyan-400">
                 LIVE STATUS
               </p>
 
               <div className="space-y-5">
+
                 <StatusItem
                   label="Gesture"
                   value={
@@ -393,15 +409,20 @@ export default function Home() {
                     "---"
                   }
                 />
+
               </div>
+
             </section>
 
+            {/* Controls */}
             <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+
               <p className="mb-4 text-xs tracking-[0.3em] text-cyan-400">
                 CONTROLS
               </p>
 
               <div className="space-y-3 text-sm text-zinc-300">
+
                 <p>
                   ☝ Point — Move cursor
                 </p>
@@ -417,13 +438,20 @@ export default function Home() {
                 <p>
                   ✊ Fist — Contract
                 </p>
+
               </div>
+
             </section>
+
           </aside>
+
         </div>
 
+        {/* Playground */}
         <section className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6">
+
           <div className="mb-6">
+
             <p className="text-xs tracking-[0.3em] text-cyan-400">
               INTERACTIVE PLAYGROUND
             </p>
@@ -439,9 +467,11 @@ export default function Home() {
               index finger to select
               it.
             </p>
+
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
+
             <PlaygroundCard
               id="Projects"
               title="Projects"
@@ -498,18 +528,28 @@ export default function Home() {
                 )
               }
             />
+
           </div>
+
         </section>
+
       </section>
 
+      {/* AI LAB */}
       {aiLabOpen && (
         <AiLab
-          gesture={status.gesture}
-          hand={status.hand}
+          gesture={
+            status.gesture
+          }
+          hand={
+            status.hand
+          }
           handsDetected={
             status.handsDetected
           }
-          fps={status.fps}
+          fps={
+            status.fps
+          }
           hovered={
             hoveredCard ===
             "Close AI Lab"
@@ -519,6 +559,7 @@ export default function Home() {
           }
         />
       )}
+
     </main>
   );
 }
@@ -542,16 +583,6 @@ function AiLab({
   hovered: boolean;
   onClose: () => void;
 }) {
-  const orbScale =
-    getOrbScale(
-      gesture
-    );
-
-  const orbLabel =
-    getOrbLabel(
-      gesture
-    );
-
   const confidence =
     getEstimatedConfidence(
       gesture,
@@ -560,8 +591,12 @@ function AiLab({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#030712]/95 backdrop-blur-xl">
+
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-8">
+
+        {/* Lab header */}
         <div className="flex items-start justify-between gap-6">
+
           <div>
             <p className="text-xs tracking-[0.35em] text-cyan-400">
               GESTUREVISION
@@ -574,7 +609,7 @@ function AiLab({
             <p className="mt-3 max-w-xl text-zinc-400">
               Real-time computer vision
               inference and gesture-driven
-              interaction.
+              3D interaction.
             </p>
           </div>
 
@@ -609,93 +644,91 @@ function AiLab({
           >
             CLOSE LAB
           </button>
+
         </div>
 
+        {/* Lab body */}
         <div className="mt-10 grid flex-1 gap-6 lg:grid-cols-[2fr_1fr]">
-          <section className="relative flex min-h-[540px] items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-black/30">
+
+          {/* 3D visualization */}
+          <section className="relative min-h-[540px] overflow-hidden rounded-3xl border border-white/10 bg-black/30">
+
             <div
               className="
+                pointer-events-none
                 absolute
                 inset-0
+                z-[1]
                 opacity-20
                 [background-image:linear-gradient(rgba(34,211,238,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.15)_1px,transparent_1px)]
                 [background-size:40px_40px]
               "
             />
 
-            <div className="absolute h-[420px] w-[420px] rounded-full bg-cyan-400/10 blur-3xl" />
+            <div className="absolute inset-0">
+              <AiScene
+                gesture={
+                  gesture
+                }
+              />
+            </div>
 
-            {gesture === "POINT" && (
-              <TargetIndicator />
-            )}
+            <div className="pointer-events-none absolute left-6 top-6 z-10">
 
-            {gesture === "PINCH" && (
-              <SelectionPulse />
-            )}
+              <p className="text-xs tracking-[0.3em] text-cyan-400">
+                3D RESPONSE ENGINE
+              </p>
 
-            <div
-              className="
-                relative
-                flex
-                h-52
-                w-52
-                items-center
-                justify-center
-                rounded-full
-                border
-                border-cyan-300/60
-                bg-cyan-400/10
-                shadow-[0_0_80px_rgba(34,211,238,0.35)]
-                transition-transform
-                duration-300
-                ease-out
-              "
-              style={{
-                transform:
-                  `scale(${orbScale})`,
-              }}
-            >
-              {gesture ===
-                "OPEN PALM" && (
-                <>
-                  <div className="absolute -inset-8 animate-ping rounded-full border border-cyan-300/20" />
+              <p className="mt-2 text-sm text-zinc-500">
+                Gesture:{" "}
 
-                  <div className="absolute -inset-14 rounded-full border border-cyan-300/10" />
-                </>
-              )}
+                <span className="font-medium text-white">
+                  {gesture}
+                </span>
+              </p>
 
-              <div className="absolute inset-6 rounded-full border border-cyan-300/30" />
+            </div>
 
-              <div className="relative text-center">
-                <p className="text-xs tracking-[0.25em] text-cyan-300">
-                  AI RESPONSE
-                </p>
+            <div className="pointer-events-none absolute bottom-6 left-6 z-10">
 
-                <p className="mt-3 text-xl font-semibold">
-                  {orbLabel}
-                </p>
+              <p className="text-sm text-zinc-400">
+                Real-time gesture driven
+                3D visualization
+              </p>
+
+              <p className="mt-1 text-xs text-zinc-600">
+                React Three Fiber + MediaPipe
+              </p>
+
+            </div>
+
+            {gesture ===
+              "PINCH" && (
+              <div className="pointer-events-none absolute bottom-6 right-6 z-10 rounded-full border border-green-300/30 bg-green-400/10 px-4 py-2 text-xs tracking-[0.2em] text-green-300">
+                SELECTION ACTIVE
               </div>
-            </div>
+            )}
 
-            <div className="absolute bottom-6 left-6">
-              <p className="text-sm text-zinc-500">
-                Gesture-driven visual
-                feedback
-              </p>
+            {gesture ===
+              "POINT" && (
+              <div className="pointer-events-none absolute bottom-6 right-6 z-10 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-xs tracking-[0.2em] text-cyan-300">
+                ROTATION MODE
+              </div>
+            )}
 
-              <p className="mt-1 text-xs text-zinc-700">
-                MediaPipe Hand Landmarker
-              </p>
-            </div>
           </section>
 
+          {/* Telemetry */}
           <aside className="flex flex-col gap-6">
+
             <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+
               <p className="text-xs tracking-[0.3em] text-cyan-400">
                 LIVE INFERENCE
               </p>
 
               <div className="mt-6">
+
                 <p className="text-sm text-zinc-500">
                   Current gesture
                 </p>
@@ -703,10 +736,14 @@ function AiLab({
                 <p className="mt-2 break-words text-3xl font-bold">
                   {gesture}
                 </p>
+
               </div>
 
+              {/* Confidence */}
               <div className="mt-7">
+
                 <div className="mb-2 flex items-center justify-between">
+
                   <span className="text-sm text-zinc-500">
                     Gesture confidence
                   </span>
@@ -714,9 +751,11 @@ function AiLab({
                   <span className="text-sm font-medium">
                     {confidence}%
                   </span>
+
                 </div>
 
                 <div className="h-2 overflow-hidden rounded-full bg-white/5">
+
                   <div
                     className="h-full rounded-full bg-cyan-400 transition-all duration-300"
                     style={{
@@ -724,10 +763,17 @@ function AiLab({
                         `${confidence}%`,
                     }}
                   />
+
                 </div>
+
+                <p className="mt-2 text-xs text-zinc-600">
+                  Experimental UI score
+                </p>
+
               </div>
 
               <div className="mt-8 space-y-5">
+
                 <StatusItem
                   label="Hand"
                   value={hand}
@@ -765,22 +811,32 @@ function AiLab({
                 />
 
                 <StatusItem
+                  label="Renderer"
+                  value="Three.js"
+                />
+
+                <StatusItem
                   label="Mode"
                   value="Real-time"
                 />
+
               </div>
+
             </section>
 
+            {/* Experiments */}
             <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+
               <p className="text-xs tracking-[0.3em] text-cyan-400">
                 EXPERIMENT
               </p>
 
               <div className="mt-5 space-y-4">
+
                 <GestureInstruction
                   gesture="✋"
                   name="Open Palm"
-                  action="Expand + pulse"
+                  action="Expand object"
                   active={
                     gesture ===
                     "OPEN PALM"
@@ -790,7 +846,7 @@ function AiLab({
                 <GestureInstruction
                   gesture="✊"
                   name="Fist"
-                  action="Contract orb"
+                  action="Contract object"
                   active={
                     gesture ===
                     "FIST"
@@ -800,7 +856,7 @@ function AiLab({
                 <GestureInstruction
                   gesture="☝"
                   name="Point"
-                  action="Target mode"
+                  action="Rotation mode"
                   active={
                     gesture ===
                     "POINT"
@@ -816,45 +872,17 @@ function AiLab({
                     "PINCH"
                   }
                 />
+
               </div>
+
             </section>
+
           </aside>
+
         </div>
+
       </div>
-    </div>
-  );
-}
 
-/* ============================
-   VISUAL EFFECTS
-============================ */
-
-function TargetIndicator() {
-  return (
-    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-      <div className="relative h-72 w-72">
-        <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-cyan-300/20" />
-
-        <div className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-cyan-300/20" />
-
-        <div className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/40" />
-
-        <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-300 shadow-[0_0_20px_rgba(103,232,249,0.9)]" />
-      </div>
-    </div>
-  );
-}
-
-function SelectionPulse() {
-  return (
-    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-      <div className="absolute h-80 w-80 animate-ping rounded-full border border-green-300/30" />
-
-      <div className="absolute h-64 w-64 rounded-full border border-green-300/20" />
-
-      <div className="absolute rounded-full bg-green-400/10 px-5 py-2 text-xs tracking-[0.25em] text-green-300">
-        SELECTION LOCK
-      </div>
     </div>
   );
 }
@@ -862,48 +890,6 @@ function SelectionPulse() {
 /* ============================
    HELPERS
 ============================ */
-
-function getOrbScale(
-  gesture: string
-) {
-  switch (gesture) {
-    case "OPEN PALM":
-      return 1.35;
-
-    case "FIST":
-      return 0.7;
-
-    case "PINCH":
-      return 0.9;
-
-    case "POINT":
-      return 1.05;
-
-    default:
-      return 1;
-  }
-}
-
-function getOrbLabel(
-  gesture: string
-) {
-  switch (gesture) {
-    case "OPEN PALM":
-      return "EXPANDING";
-
-    case "FIST":
-      return "CONTRACTING";
-
-    case "POINT":
-      return "TARGETING";
-
-    case "PINCH":
-      return "SELECTING";
-
-    default:
-      return "WAITING";
-  }
-}
 
 function getEstimatedConfidence(
   gesture: string,
@@ -975,11 +961,13 @@ function GestureInstruction({
         }
       `}
     >
+
       <div className="text-2xl">
         {gesture}
       </div>
 
       <div className="flex-1">
+
         <p className="font-medium">
           {name}
         </p>
@@ -987,6 +975,7 @@ function GestureInstruction({
         <p className="text-xs text-zinc-500">
           {action}
         </p>
+
       </div>
 
       {active && (
@@ -994,12 +983,13 @@ function GestureInstruction({
           ACTIVE
         </span>
       )}
+
     </div>
   );
 }
 
 /* ============================
-   SHARED
+   SHARED COMPONENTS
 ============================ */
 
 function StatusItem({
@@ -1011,6 +1001,7 @@ function StatusItem({
 }) {
   return (
     <div className="flex items-center justify-between border-b border-white/10 pb-4 last:border-none last:pb-0">
+
       <span className="text-sm text-zinc-400">
         {label}
       </span>
@@ -1018,6 +1009,7 @@ function StatusItem({
       <span className="font-medium">
         {value}
       </span>
+
     </div>
   );
 }
@@ -1074,7 +1066,9 @@ function PlaygroundCard({
         }
       `}
     >
+
       <div className="mb-5 flex items-center justify-between">
+
         <span className="text-xs tracking-[0.2em] text-cyan-400">
           GESTURE TARGET
         </span>
@@ -1084,6 +1078,7 @@ function PlaygroundCard({
             SELECTED
           </span>
         )}
+
       </div>
 
       <p className="text-lg font-semibold">
@@ -1093,6 +1088,7 @@ function PlaygroundCard({
       <p className="mt-2 text-sm text-zinc-400">
         {description}
       </p>
+
     </button>
   );
 }
