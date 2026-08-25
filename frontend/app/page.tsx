@@ -853,7 +853,7 @@ function GesturePlayground({
     });
 
   const targetShownAtRef =
-    useRef(performance.now());
+    useRef(0);
 
   useEffect(() => {
     targetShownAtRef.current =
