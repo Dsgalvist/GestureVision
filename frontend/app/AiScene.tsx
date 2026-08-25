@@ -13,12 +13,18 @@ type AiSceneProps = {
   gesture: string;
   cursorX: number | null;
   cursorY: number | null;
+
+  // NEW
+  twoHandDistance: number | null;
 };
 
 export default function AiScene({
   gesture,
   cursorX,
   cursorY,
+
+  // NEW
+  twoHandDistance,
 }: AiSceneProps) {
   return (
     <div className="h-full w-full">
@@ -59,6 +65,11 @@ export default function AiScene({
             gesture={gesture}
             cursorX={cursorX}
             cursorY={cursorY}
+
+            // NEW
+            twoHandDistance={
+              twoHandDistance
+            }
           />
         </Float>
 
@@ -76,10 +87,16 @@ function GestureObject({
   gesture,
   cursorX,
   cursorY,
+
+  // NEW
+  twoHandDistance,
 }: {
   gesture: string;
   cursorX: number | null;
   cursorY: number | null;
+
+  // NEW
+  twoHandDistance: number | null;
 }) {
   const meshRef =
     useRef<THREE.Mesh>(null);
@@ -153,6 +170,39 @@ function GestureObject({
           delta * 0.12;
 
         break;
+    }
+
+    /*
+     * NEW:
+     * Two-hand zoom.
+     *
+     * Only applies when two hands are detected
+     * and a distance value exists.
+     *
+     * Hands closer together:
+     * smaller scale.
+     *
+     * Hands farther apart:
+     * larger scale.
+     */
+    if (
+      twoHandDistance !== null
+    ) {
+      const twoHandScale =
+        THREE.MathUtils.clamp(
+          THREE.MathUtils.mapLinear(
+            twoHandDistance,
+            0.15,
+            0.8,
+            0.75,
+            1.6
+          ),
+          0.75,
+          1.6
+        );
+
+      targetScale =
+        twoHandScale;
     }
 
     const currentScale =

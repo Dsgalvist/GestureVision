@@ -14,6 +14,9 @@ export type TrackingData = {
   fps: number;
   cursorX: number | null;
   cursorY: number | null;
+
+  // NEW: distance between two detected hands
+  twoHandDistance: number | null;
 };
 
 type HandTrackerProps = {
@@ -185,6 +188,40 @@ export default function HandTracker({
           let cursorX: number | null = null;
           let cursorY: number | null = null;
 
+          /*
+           * NEW:
+           * Distance between the two hands.
+           *
+           * We use landmark 0 (wrist)
+           * from each detected hand.
+           */
+          let twoHandDistance: number | null =
+            null;
+
+          if (
+            results.landmarks.length === 2 &&
+            results.landmarks[0][0] &&
+            results.landmarks[1][0]
+          ) {
+            const hand1 =
+              results.landmarks[0][0];
+
+            const hand2 =
+              results.landmarks[1][0];
+
+            twoHandDistance =
+              Math.sqrt(
+                Math.pow(
+                  hand1.x - hand2.x,
+                  2
+                ) +
+                  Math.pow(
+                    hand1.y - hand2.y,
+                    2
+                  )
+              );
+          }
+
           for (
             let i = 0;
             i < results.landmarks.length;
@@ -329,6 +366,9 @@ export default function HandTracker({
 
             cursorX,
             cursorY,
+
+            // NEW
+            twoHandDistance,
           });
         }
       }

@@ -18,9 +18,12 @@ type VisionStatus = {
   handsDetected: number;
   fps: number;
 
-  // NEW: hand cursor position
+  // Hand cursor position
   cursorX: number | null;
   cursorY: number | null;
+
+  // NEW: distance between two detected hands
+  twoHandDistance: number | null;
 };
 
 export default function Home() {
@@ -31,9 +34,11 @@ export default function Home() {
       handsDetected: 0,
       fps: 0,
 
-      // NEW
       cursorX: null,
       cursorY: null,
+
+      // NEW
+      twoHandDistance: null,
     });
 
   const [
@@ -266,12 +271,15 @@ export default function Home() {
             fps:
               data.fps,
 
-            // NEW
             cursorX:
               data.cursorX,
 
             cursorY:
               data.cursorY,
+
+            // NEW
+            twoHandDistance:
+              data.twoHandDistance,
           });
         }
       },
@@ -550,6 +558,11 @@ export default function Home() {
             status.cursorY
           }
 
+          // NEW
+          twoHandDistance={
+            status.twoHandDistance
+          }
+
           hovered={
             hoveredCard ===
             "Close AI Lab"
@@ -574,6 +587,10 @@ function AiLab({
   fps,
   cursorX,
   cursorY,
+
+  // NEW
+  twoHandDistance,
+
   hovered,
   onClose,
 }: {
@@ -583,6 +600,10 @@ function AiLab({
   fps: number;
   cursorX: number | null;
   cursorY: number | null;
+
+  // NEW
+  twoHandDistance: number | null;
+
   hovered: boolean;
   onClose: () => void;
 }) {
@@ -678,10 +699,15 @@ function AiLab({
                 cursorY={
                   cursorY
                 }
+
+                // NEW
+                twoHandDistance={
+                  twoHandDistance
+                }
               />
             </div>
 
-            {/* 3D RESPONSE ENGINE + NEW TELEMETRY */}
+            {/* 3D RESPONSE ENGINE + TELEMETRY */}
             <div className="pointer-events-none absolute left-6 top-6 z-10">
               <p className="text-xs tracking-[0.3em] text-cyan-400">
                 3D RESPONSE ENGINE
@@ -695,7 +721,7 @@ function AiLab({
                 </span>
               </p>
 
-              {/* NEW: LIVE 3D CONTROL TELEMETRY */}
+              {/* LIVE 3D CONTROL TELEMETRY */}
               <div className="mt-4 rounded-xl border border-white/10 bg-black/30 px-4 py-3 backdrop-blur">
                 <p className="text-[11px] tracking-[0.25em] text-cyan-300">
                   3D CONTROL
