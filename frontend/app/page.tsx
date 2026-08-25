@@ -560,6 +560,10 @@ export default function Home() {
             hoveredCard ===
             "Close Gesture Playground"
           }
+          hoveredTarget={
+            hoveredCard ===
+            "Precision Target"
+          }
           onClose={
             closeGesturePlayground
           }
@@ -612,11 +616,35 @@ export default function Home() {
 
 function GesturePlayground({
   hovered,
+  hoveredTarget,
   onClose,
 }: {
   hovered: boolean;
+  hoveredTarget: boolean;
   onClose: () => void;
 }) {
+  const [score, setScore] = useState(0);
+  const [hits, setHits] = useState(0);
+
+  const [targetPosition, setTargetPosition] =
+    useState({
+      x: 50,
+      y: 50,
+    });
+
+  function moveTarget() {
+    setTargetPosition({
+      x: 12 + Math.random() * 76,
+      y: 15 + Math.random() * 70,
+    });
+  }
+
+  function hitTarget() {
+    setScore((currentScore) => currentScore + 1);
+    setHits((currentHits) => currentHits + 1);
+    moveTarget();
+  }
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#030712]/95 backdrop-blur-xl">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-8">
@@ -631,8 +659,7 @@ function GesturePlayground({
             </h2>
 
             <p className="mt-3 max-w-xl text-zinc-400">
-              Test gesture-controlled
-              interactions and challenges.
+              Test gesture-controlled interactions and challenges.
             </p>
           </div>
 
@@ -641,27 +668,12 @@ function GesturePlayground({
             data-gesture-id="Close Gesture Playground"
             onClick={onClose}
             className={`
-              rounded-xl
-              border
-              px-5
-              py-3
-              text-sm
-              font-medium
-              transition-all
-              duration-200
-
+              rounded-xl border px-5 py-3 text-sm font-medium
+              transition-all duration-200
               ${
                 hovered
-                  ? `
-                    scale-105
-                    border-cyan-300
-                    bg-cyan-400/10
-                    shadow-[0_0_25px_rgba(34,211,238,0.25)]
-                  `
-                  : `
-                    border-white/10
-                    bg-white/5
-                  `
+                  ? `scale-105 border-cyan-300 bg-cyan-400/10 shadow-[0_0_25px_rgba(34,211,238,0.25)]`
+                  : `border-white/10 bg-white/5`
               }
             `}
           >
@@ -669,15 +681,80 @@ function GesturePlayground({
           </button>
         </div>
 
-        <section className="mt-10 flex flex-1 items-center justify-center rounded-3xl border border-white/10 bg-white/5 p-6">
-          <div className="text-center">
-            <p className="text-xs tracking-[0.3em] text-cyan-400">
-              PLAYGROUND READY
-            </p>
+        <section className="mt-10 flex flex-1 flex-col rounded-3xl border border-white/10 bg-white/5 p-6">
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs tracking-[0.3em] text-cyan-400">
+                PRECISION CHALLENGE
+              </p>
 
-            <p className="mt-3 text-sm text-zinc-500">
-              Gesture challenge coming next.
-            </p>
+              <h3 className="mt-2 text-2xl font-semibold">
+                Aim and pinch the target
+              </h3>
+
+              <p className="mt-2 text-sm text-zinc-400">
+                Point to move the cursor. Pinch while hovering over the target to score a hit.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="min-w-24 rounded-2xl border border-white/10 bg-black/20 px-5 py-3">
+                <p className="text-xs tracking-[0.2em] text-zinc-500">
+                  SCORE
+                </p>
+                <p className="mt-1 text-2xl font-bold text-cyan-300">
+                  {score}
+                </p>
+              </div>
+
+              <div className="min-w-24 rounded-2xl border border-white/10 bg-black/20 px-5 py-3">
+                <p className="text-xs tracking-[0.2em] text-zinc-500">
+                  HITS
+                </p>
+                <p className="mt-1 text-2xl font-bold text-green-300">
+                  {hits}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative mt-6 min-h-[430px] flex-1 overflow-hidden rounded-3xl border border-white/10 bg-black/30">
+            <div
+              className="
+                pointer-events-none absolute inset-0 opacity-20
+                [background-image:linear-gradient(rgba(34,211,238,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.15)_1px,transparent_1px)]
+                [background-size:40px_40px]
+              "
+            />
+
+            <div className="pointer-events-none absolute left-5 top-5 z-10 rounded-full border border-white/10 bg-black/40 px-4 py-2 text-xs text-zinc-400 backdrop-blur">
+              POINT → AIM · PINCH → HIT
+            </div>
+
+            <button
+              data-gesture-clickable="true"
+              data-gesture-id="Precision Target"
+              onClick={hitTarget}
+              aria-label="Precision target"
+              className={`
+                absolute z-20 h-20 w-20 -translate-x-1/2 -translate-y-1/2
+                rounded-full border-2
+                transition-[transform,box-shadow,border-color,background-color]
+                duration-150
+                ${
+                  hoveredTarget
+                    ? `scale-110 border-green-300 bg-green-400/20 shadow-[0_0_40px_rgba(74,222,128,0.7)]`
+                    : `border-cyan-300 bg-cyan-400/10 shadow-[0_0_30px_rgba(34,211,238,0.45)]`
+                }
+              `}
+              style={{
+                left: `${targetPosition.x}%`,
+                top: `${targetPosition.y}%`,
+              }}
+            >
+              <span className="absolute inset-3 rounded-full border border-white/60" />
+              <span className="absolute inset-7 rounded-full bg-white" />
+            </button>
           </div>
         </section>
       </div>
