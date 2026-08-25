@@ -29,18 +29,21 @@ export default function Home() {
   const [
     hoveredCard,
     setHoveredCard,
-  ] =
-    useState<string | null>(
-      null
-    );
+  ] = useState<string | null>(
+    null
+  );
 
   const [
     selectedCard,
     setSelectedCard,
-  ] =
-    useState<string | null>(
-      null
-    );
+  ] = useState<string | null>(
+    null
+  );
+
+  const [
+    aiLabOpen,
+    setAiLabOpen,
+  ] = useState(false);
 
   const cursorRef =
     useRef<HTMLDivElement>(
@@ -58,12 +61,15 @@ export default function Home() {
   const lastStatusUpdateRef =
     useRef(0);
 
-  // Smooth cursor position
   const smoothXRef =
-    useRef<number | null>(null);
+    useRef<number | null>(
+      null
+    );
 
   const smoothYRef =
-    useRef<number | null>(null);
+    useRef<number | null>(
+      null
+    );
 
   const handleTrackingFrame =
     useCallback(
@@ -77,23 +83,13 @@ export default function Home() {
         } = data;
 
         /*
-         * 1. Move cursor directly.
-         * No React state required.
+         * 1. Move gesture cursor
          */
         if (
           cursorRef.current &&
           cursorX !== null &&
           cursorY !== null
         ) {
-          /*
-           * Cursor smoothing.
-           *
-           * Lower value:
-           * smoother but slower.
-           *
-           * Higher value:
-           * faster but more jitter.
-           */
           const smoothingFactor =
             0.28;
 
@@ -138,9 +134,11 @@ export default function Home() {
           cursorRef.current.style.opacity =
             "1";
 
+          /*
+           * Cursor appearance
+           */
           if (
-            gesture ===
-            "PINCH"
+            gesture === "PINCH"
           ) {
             cursorRef.current.style.width =
               "24px";
@@ -168,8 +166,7 @@ export default function Home() {
           }
 
           /*
-           * 2. Find element under
-           * gesture cursor.
+           * 2. Detect interactive DOM element
            */
           const element =
             document.elementFromPoint(
@@ -187,10 +184,6 @@ export default function Home() {
               .gestureId ??
             null;
 
-          /*
-           * Only update React if
-           * hovered item changed.
-           */
           if (
             targetId !==
             hoveredRef.current
@@ -220,8 +213,7 @@ export default function Home() {
           }
 
           if (
-            gesture !==
-            "PINCH"
+            gesture !== "PINCH"
           ) {
             pinchActiveRef.current =
               false;
@@ -229,20 +221,9 @@ export default function Home() {
         } else if (
           cursorRef.current
         ) {
-          /*
-           * Hide cursor when
-           * the hand disappears.
-           */
           cursorRef.current.style.opacity =
             "0";
 
-          /*
-           * Reset smoothing so
-           * the cursor doesn't
-           * travel from the old
-           * position when the hand
-           * returns.
-           */
           smoothXRef.current =
             null;
 
@@ -263,8 +244,8 @@ export default function Home() {
         }
 
         /*
-         * 4. Update text UI only
-         * ~10 times per second.
+         * 4. React status
+         * only ~10 updates/sec
          */
         const now =
           performance.now();
@@ -300,13 +281,27 @@ export default function Home() {
   ) {
     setSelectedCard(card);
 
+    if (card === "AI Lab") {
+      setAiLabOpen(true);
+    }
+
     console.log(
       `GestureVision selected: ${card}`
     );
   }
 
+  function closeAiLab() {
+    setAiLabOpen(false);
+    setSelectedCard(null);
+    setHoveredCard(null);
+
+    hoveredRef.current =
+      null;
+  }
+
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
+      {/* Gesture cursor */}
       <div
         ref={cursorRef}
         className="
@@ -314,7 +309,7 @@ export default function Home() {
           fixed
           left-0
           top-0
-          z-50
+          z-[100]
           h-9
           w-9
           rounded-full
@@ -328,6 +323,7 @@ export default function Home() {
       />
 
       <section className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10">
+        {/* HEADER */}
         <header className="mb-10">
           <p className="mb-2 text-sm tracking-[0.35em] text-cyan-400">
             COMPUTER VISION EXPERIENCE
@@ -344,6 +340,7 @@ export default function Home() {
           </p>
         </header>
 
+        {/* CAMERA + STATUS */}
         <div className="grid flex-1 gap-6 lg:grid-cols-[2fr_1fr]">
           <section className="rounded-3xl border border-white/10 bg-white/5 p-4">
             <div className="mb-4">
@@ -365,6 +362,7 @@ export default function Home() {
           </section>
 
           <aside className="flex flex-col gap-6">
+            {/* STATUS */}
             <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
               <p className="mb-5 text-xs tracking-[0.3em] text-cyan-400">
                 LIVE STATUS
@@ -417,6 +415,7 @@ export default function Home() {
               </div>
             </section>
 
+            {/* CONTROLS */}
             <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
               <p className="mb-4 text-xs tracking-[0.3em] text-cyan-400">
                 CONTROLS
@@ -424,8 +423,7 @@ export default function Home() {
 
               <div className="space-y-3 text-sm text-zinc-300">
                 <p>
-                  ☝ Point — Move
-                  cursor
+                  ☝ Point — Move cursor
                 </p>
 
                 <p>
@@ -433,18 +431,18 @@ export default function Home() {
                 </p>
 
                 <p>
-                  ✋ Open Palm —
-                  Menu
+                  ✋ Open Palm — Expand
                 </p>
 
                 <p>
-                  ✊ Fist — Back
+                  ✊ Fist — Contract
                 </p>
               </div>
             </section>
           </aside>
         </div>
 
+        {/* PLAYGROUND */}
         <section className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6">
           <div className="mb-6">
             <p className="text-xs tracking-[0.3em] text-cyan-400">
@@ -524,9 +522,385 @@ export default function Home() {
           </div>
         </section>
       </section>
+
+      {/* AI LAB */}
+      {aiLabOpen && (
+        <AiLab
+          gesture={status.gesture}
+          hand={status.hand}
+          fps={status.fps}
+          hovered={
+            hoveredCard ===
+            "Close AI Lab"
+          }
+          onClose={
+            closeAiLab
+          }
+        />
+      )}
     </main>
   );
 }
+
+/*
+ * ============================
+ * AI LAB
+ * ============================
+ */
+
+function AiLab({
+  gesture,
+  hand,
+  fps,
+  hovered,
+  onClose,
+}: {
+  gesture: string;
+  hand: string;
+  fps: number;
+  hovered: boolean;
+  onClose: () => void;
+}) {
+  const orbScale =
+    getOrbScale(
+      gesture
+    );
+
+  const orbLabel =
+    getOrbLabel(
+      gesture
+    );
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#030712]/95 backdrop-blur-xl">
+      <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-8">
+        {/* LAB HEADER */}
+        <div className="flex items-start justify-between gap-6">
+          <div>
+            <p className="text-xs tracking-[0.35em] text-cyan-400">
+              GESTUREVISION
+            </p>
+
+            <h2 className="mt-2 text-3xl font-bold md:text-5xl">
+              AI Lab
+            </h2>
+
+            <p className="mt-3 max-w-xl text-zinc-400">
+              Real-time visual
+              interaction driven by
+              computer vision.
+            </p>
+          </div>
+
+          <button
+            data-gesture-clickable="true"
+            data-gesture-id="Close AI Lab"
+            onClick={onClose}
+            className={`
+              rounded-xl
+              border
+              px-5
+              py-3
+              text-sm
+              font-medium
+              transition-all
+              duration-200
+
+              ${
+                hovered
+                  ? `
+                    scale-105
+                    border-cyan-300
+                    bg-cyan-400/10
+                    shadow-[0_0_25px_rgba(34,211,238,0.25)]
+                  `
+                  : `
+                    border-white/10
+                    bg-white/5
+                  `
+              }
+            `}
+          >
+            CLOSE LAB
+          </button>
+        </div>
+
+        {/* LAB BODY */}
+        <div className="mt-10 grid flex-1 gap-6 lg:grid-cols-[2fr_1fr]">
+          {/* ORB AREA */}
+          <section className="relative flex min-h-[500px] items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-black/30">
+            {/* Grid */}
+            <div
+              className="
+                absolute
+                inset-0
+                opacity-20
+                [background-image:linear-gradient(rgba(34,211,238,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.15)_1px,transparent_1px)]
+                [background-size:40px_40px]
+              "
+            />
+
+            {/* Glow */}
+            <div className="absolute h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl" />
+
+            {/* Orb */}
+            <div
+              className="
+                relative
+                flex
+                h-52
+                w-52
+                items-center
+                justify-center
+                rounded-full
+                border
+                border-cyan-300/60
+                bg-cyan-400/10
+                shadow-[0_0_80px_rgba(34,211,238,0.35)]
+                transition-transform
+                duration-300
+                ease-out
+              "
+              style={{
+                transform:
+                  `scale(${orbScale})`,
+              }}
+            >
+              <div
+                className="
+                  absolute
+                  inset-6
+                  rounded-full
+                  border
+                  border-cyan-300/30
+                "
+              />
+
+              <div className="relative text-center">
+                <p className="text-xs tracking-[0.25em] text-cyan-300">
+                  AI RESPONSE
+                </p>
+
+                <p className="mt-3 text-xl font-semibold">
+                  {orbLabel}
+                </p>
+              </div>
+            </div>
+
+            <div className="absolute bottom-6 left-6 text-sm text-zinc-500">
+              Gesture-driven visual
+              feedback
+            </div>
+          </section>
+
+          {/* TELEMETRY */}
+          <aside className="flex flex-col gap-6">
+            <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <p className="text-xs tracking-[0.3em] text-cyan-400">
+                LIVE INFERENCE
+              </p>
+
+              <div className="mt-6">
+                <p className="text-sm text-zinc-500">
+                  Current gesture
+                </p>
+
+                <p className="mt-2 break-words text-3xl font-bold">
+                  {gesture}
+                </p>
+              </div>
+
+              <div className="mt-8 space-y-5">
+                <StatusItem
+                  label="Hand"
+                  value={hand}
+                />
+
+                <StatusItem
+                  label="FPS"
+                  value={String(
+                    fps
+                  )}
+                />
+
+                <StatusItem
+                  label="Model"
+                  value="MediaPipe"
+                />
+
+                <StatusItem
+                  label="Mode"
+                  value="Real-time"
+                />
+              </div>
+            </section>
+
+            <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <p className="text-xs tracking-[0.3em] text-cyan-400">
+                EXPERIMENT
+              </p>
+
+              <div className="mt-5 space-y-4 text-sm">
+                <GestureInstruction
+                  gesture="✋"
+                  name="Open Palm"
+                  action="Expand orb"
+                  active={
+                    gesture ===
+                    "OPEN PALM"
+                  }
+                />
+
+                <GestureInstruction
+                  gesture="✊"
+                  name="Fist"
+                  action="Contract orb"
+                  active={
+                    gesture ===
+                    "FIST"
+                  }
+                />
+
+                <GestureInstruction
+                  gesture="☝"
+                  name="Point"
+                  action="Tracking mode"
+                  active={
+                    gesture ===
+                    "POINT"
+                  }
+                />
+
+                <GestureInstruction
+                  gesture="🤏"
+                  name="Pinch"
+                  action="Selection mode"
+                  active={
+                    gesture ===
+                    "PINCH"
+                  }
+                />
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/*
+ * ============================
+ * HELPERS
+ * ============================
+ */
+
+function getOrbScale(
+  gesture: string
+) {
+  switch (gesture) {
+    case "OPEN PALM":
+      return 1.35;
+
+    case "FIST":
+      return 0.7;
+
+    case "PINCH":
+      return 0.9;
+
+    case "POINT":
+      return 1.05;
+
+    default:
+      return 1;
+  }
+}
+
+function getOrbLabel(
+  gesture: string
+) {
+  switch (gesture) {
+    case "OPEN PALM":
+      return "EXPANDING";
+
+    case "FIST":
+      return "CONTRACTING";
+
+    case "POINT":
+      return "TRACKING";
+
+    case "PINCH":
+      return "SELECTING";
+
+    default:
+      return "WAITING";
+  }
+}
+
+function GestureInstruction({
+  gesture,
+  name,
+  action,
+  active,
+}: {
+  gesture: string;
+  name: string;
+  action: string;
+  active: boolean;
+}) {
+  return (
+    <div
+      className={`
+        flex
+        items-center
+        gap-4
+        rounded-xl
+        border
+        p-4
+        transition-all
+        duration-200
+
+        ${
+          active
+            ? `
+              border-cyan-300/60
+              bg-cyan-400/10
+            `
+            : `
+              border-white/5
+              bg-black/20
+            `
+        }
+      `}
+    >
+      <div className="text-2xl">
+        {gesture}
+      </div>
+
+      <div className="flex-1">
+        <p className="font-medium">
+          {name}
+        </p>
+
+        <p className="text-xs text-zinc-500">
+          {action}
+        </p>
+      </div>
+
+      {active && (
+        <span className="text-xs font-medium text-cyan-300">
+          ACTIVE
+        </span>
+      )}
+    </div>
+  );
+}
+
+/*
+ * ============================
+ * SHARED COMPONENTS
+ * ============================
+ */
 
 function StatusItem({
   label,
