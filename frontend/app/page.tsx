@@ -112,6 +112,25 @@ export default function Home() {
   const lastScrollFeedbackRef =
     useRef(0);
 
+  const swipeStartXRef =
+    useRef<number | null>(
+      null
+    );
+
+  const swipeStartYRef =
+    useRef<number | null>(
+      null
+    );
+
+  const swipeStartTimeRef =
+    useRef(0);
+
+  const swipeBackActiveRef =
+    useRef(false);
+
+  const lastSwipeBackRef =
+    useRef(0);
+
   const handleTrackingFrame =
     useCallback(
       (
@@ -168,6 +187,119 @@ export default function Home() {
 
           // OPEN PALM vertical gesture scroll
           if (gesture === "OPEN PALM") {
+            const now =
+              performance.now();
+
+            if (
+              swipeStartXRef.current === null ||
+              swipeStartYRef.current === null
+            ) {
+              swipeStartXRef.current =
+                smoothXRef.current;
+
+              swipeStartYRef.current =
+                smoothYRef.current;
+
+              swipeStartTimeRef.current =
+                now;
+
+              swipeBackActiveRef.current =
+                false;
+            } else {
+              const swipeDeltaX =
+                smoothXRef.current -
+                swipeStartXRef.current;
+
+              const swipeDeltaY =
+                smoothYRef.current -
+                swipeStartYRef.current;
+
+              const swipeElapsed =
+                now -
+                swipeStartTimeRef.current;
+
+              const swipeThreshold = -0.18;
+              const swipeMaxTime = 450;
+              const swipeCooldown = 900;
+
+              const navigationOpen =
+                aiLabOpen ||
+                gesturePlaygroundOpen ||
+                howItWorksOpen;
+
+              const horizontalSwipe =
+                swipeDeltaX <
+                  swipeThreshold &&
+                Math.abs(swipeDeltaX) >
+                  Math.abs(swipeDeltaY) *
+                    1.5;
+
+              if (
+                navigationOpen &&
+                horizontalSwipe &&
+                swipeElapsed <=
+                  swipeMaxTime &&
+                now -
+                  lastSwipeBackRef.current >
+                  swipeCooldown
+              ) {
+                swipeBackActiveRef.current =
+                  true;
+
+                lastSwipeBackRef.current =
+                  now;
+
+                if (aiLabOpen) {
+                  closeAiLab();
+                } else if (
+                  gesturePlaygroundOpen
+                ) {
+                  closeGesturePlayground();
+                } else if (
+                  howItWorksOpen
+                ) {
+                  closeHowItWorks();
+                }
+
+                if (
+                  scrollIndicatorRef.current
+                ) {
+                  scrollIndicatorRef.current.textContent =
+                    "← BACK";
+
+                  scrollIndicatorRef.current.style.opacity =
+                    "1";
+
+                  scrollIndicatorRef.current.style.transform =
+                    `translate3d(${screenX + 28}px, ${screenY - 18}px, 0)`;
+
+                  lastScrollFeedbackRef.current =
+                    now;
+                }
+
+                swipeStartXRef.current =
+                  smoothXRef.current;
+
+                swipeStartYRef.current =
+                  smoothYRef.current;
+
+                swipeStartTimeRef.current =
+                  now;
+              } else if (
+                swipeElapsed >
+                  swipeMaxTime
+              ) {
+                swipeStartXRef.current =
+                  smoothXRef.current;
+
+                swipeStartYRef.current =
+                  smoothYRef.current;
+
+                swipeStartTimeRef.current =
+                  now;
+              }
+            }
+
             if (
               !scrollGestureActiveRef.current ||
               scrollYRef.current === null
@@ -186,7 +318,8 @@ export default function Home() {
 
               if (
                 Math.abs(deltaY) >
-                deadZone
+                  deadZone &&
+                !swipeBackActiveRef.current
               ) {
                 const scrollAmount =
                   deltaY *
@@ -278,6 +411,18 @@ export default function Home() {
 
             scrollYRef.current =
               null;
+
+            swipeStartXRef.current =
+              null;
+
+            swipeStartYRef.current =
+              null;
+
+            swipeStartTimeRef.current =
+              0;
+
+            swipeBackActiveRef.current =
+              false;
 
             if (
               scrollIndicatorRef.current
@@ -387,6 +532,18 @@ export default function Home() {
           scrollYRef.current =
             null;
 
+          swipeStartXRef.current =
+            null;
+
+          swipeStartYRef.current =
+            null;
+
+          swipeStartTimeRef.current =
+            0;
+
+          swipeBackActiveRef.current =
+            false;
+
           if (
             scrollIndicatorRef.current
           ) {
@@ -442,7 +599,11 @@ export default function Home() {
           });
         }
       },
-      []
+      [
+        aiLabOpen,
+        gesturePlaygroundOpen,
+        howItWorksOpen,
+      ]
     );
 
   function handleCardSelection(
