@@ -22,7 +22,7 @@ type VisionStatus = {
   cursorX: number | null;
   cursorY: number | null;
 
-  // NEW: distance between two detected hands
+  // Distance between two detected hands
   twoHandDistance: number | null;
 };
 
@@ -37,7 +37,6 @@ export default function Home() {
       cursorX: null,
       cursorY: null,
 
-      // NEW
       twoHandDistance: null,
     });
 
@@ -277,7 +276,6 @@ export default function Home() {
             cursorY:
               data.cursorY,
 
-            // NEW
             twoHandDistance:
               data.twoHandDistance,
           });
@@ -558,7 +556,6 @@ export default function Home() {
             status.cursorY
           }
 
-          // NEW
           twoHandDistance={
             status.twoHandDistance
           }
@@ -587,10 +584,7 @@ function AiLab({
   fps,
   cursorX,
   cursorY,
-
-  // NEW
   twoHandDistance,
-
   hovered,
   onClose,
 }: {
@@ -600,10 +594,7 @@ function AiLab({
   fps: number;
   cursorX: number | null;
   cursorY: number | null;
-
-  // NEW
   twoHandDistance: number | null;
-
   hovered: boolean;
   onClose: () => void;
 }) {
@@ -699,8 +690,6 @@ function AiLab({
                 cursorY={
                   cursorY
                 }
-
-                // NEW
                 twoHandDistance={
                   twoHandDistance
                 }
@@ -748,19 +737,35 @@ function AiLab({
                     </span>
                   </p>
 
+                  {/* NEW: two-hand distance */}
+                  <p className="text-zinc-500">
+                    Hand Distance:{" "}
+
+                    <span className="font-medium text-white">
+                      {twoHandDistance !== null
+                        ? twoHandDistance.toFixed(2)
+                        : "---"}
+                    </span>
+                  </p>
+
+                  {/* UPDATED VISUAL MODE */}
                   <p className="text-zinc-500">
                     Mode:{" "}
 
                     <span
                       className={
-                        gesture === "POINT"
-                          ? "font-medium text-cyan-300"
-                          : "font-medium text-white"
+                        twoHandDistance !== null
+                          ? "font-medium text-green-300"
+                          : gesture === "POINT"
+                            ? "font-medium text-cyan-300"
+                            : "font-medium text-white"
                       }
                     >
-                      {gesture === "POINT"
-                        ? "HAND ROTATION"
-                        : "IDLE"}
+                      {twoHandDistance !== null
+                        ? "TWO-HAND ZOOM"
+                        : gesture === "POINT"
+                          ? "HAND ROTATION"
+                          : "IDLE"}
                     </span>
                   </p>
                 </div>
@@ -778,19 +783,26 @@ function AiLab({
               </p>
             </div>
 
-            {gesture ===
-              "PINCH" && (
+            {/* NEW: two-hand zoom indicator */}
+            {twoHandDistance !== null && (
               <div className="pointer-events-none absolute bottom-6 right-6 z-10 rounded-full border border-green-300/30 bg-green-400/10 px-4 py-2 text-xs tracking-[0.2em] text-green-300">
-                SELECTION ACTIVE
+                TWO-HAND ZOOM ACTIVE
               </div>
             )}
 
-            {gesture ===
-              "POINT" && (
-              <div className="pointer-events-none absolute bottom-6 right-6 z-10 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-xs tracking-[0.2em] text-cyan-300">
-                ROTATION MODE
-              </div>
-            )}
+            {twoHandDistance === null &&
+              gesture === "PINCH" && (
+                <div className="pointer-events-none absolute bottom-6 right-6 z-10 rounded-full border border-green-300/30 bg-green-400/10 px-4 py-2 text-xs tracking-[0.2em] text-green-300">
+                  SELECTION ACTIVE
+                </div>
+              )}
+
+            {twoHandDistance === null &&
+              gesture === "POINT" && (
+                <div className="pointer-events-none absolute bottom-6 right-6 z-10 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-xs tracking-[0.2em] text-cyan-300">
+                  ROTATION MODE
+                </div>
+              )}
 
           </section>
 
