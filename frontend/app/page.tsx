@@ -96,6 +96,14 @@ export default function Home() {
       null
     );
 
+  const scrollYRef =
+    useRef<number | null>(
+      null
+    );
+
+  const scrollGestureActiveRef =
+    useRef(false);
+
   const handleTrackingFrame =
     useCallback(
       (
@@ -149,6 +157,48 @@ export default function Home() {
           const screenY =
             smoothYRef.current *
             window.innerHeight;
+
+          // OPEN PALM vertical gesture scroll
+          if (gesture === "OPEN PALM") {
+            if (
+              !scrollGestureActiveRef.current ||
+              scrollYRef.current === null
+            ) {
+              scrollGestureActiveRef.current =
+                true;
+
+              scrollYRef.current =
+                smoothYRef.current;
+            } else {
+              const deltaY =
+                smoothYRef.current -
+                scrollYRef.current;
+
+              const deadZone = 0.008;
+
+              if (
+                Math.abs(deltaY) >
+                deadZone
+              ) {
+                window.scrollBy({
+                  top:
+                    deltaY *
+                    window.innerHeight *
+                    1.15,
+                  behavior: "auto",
+                });
+
+                scrollYRef.current =
+                  smoothYRef.current;
+              }
+            }
+          } else {
+            scrollGestureActiveRef.current =
+              false;
+
+            scrollYRef.current =
+              null;
+          }
 
           cursorRef.current.style.transform =
             `translate3d(${screenX}px, ${screenY}px, 0) translate(-50%, -50%)`;
@@ -242,6 +292,12 @@ export default function Home() {
             null;
 
           smoothYRef.current =
+            null;
+
+          scrollGestureActiveRef.current =
+            false;
+
+          scrollYRef.current =
             null;
 
           if (
@@ -482,7 +538,7 @@ export default function Home() {
                 </p>
 
                 <p>
-                  ✋ Open Palm — Expand
+                  ✋ Open Palm — Scroll / Expand
                 </p>
 
                 <p>
