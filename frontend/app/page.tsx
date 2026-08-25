@@ -82,9 +82,6 @@ export default function Home() {
           gesture,
         } = data;
 
-        /*
-         * 1. Move gesture cursor
-         */
         if (
           cursorRef.current &&
           cursorX !== null &&
@@ -134,11 +131,9 @@ export default function Home() {
           cursorRef.current.style.opacity =
             "1";
 
-          /*
-           * Cursor appearance
-           */
           if (
-            gesture === "PINCH"
+            gesture ===
+            "PINCH"
           ) {
             cursorRef.current.style.width =
               "24px";
@@ -165,9 +160,6 @@ export default function Home() {
               "rgb(34 211 238 / 0.3)";
           }
 
-          /*
-           * 2. Detect interactive DOM element
-           */
           const element =
             document.elementFromPoint(
               screenX,
@@ -196,9 +188,6 @@ export default function Home() {
             );
           }
 
-          /*
-           * 3. PINCH = click
-           */
           if (
             gesture ===
               "PINCH" &&
@@ -243,10 +232,6 @@ export default function Home() {
           }
         }
 
-        /*
-         * 4. React status
-         * only ~10 updates/sec
-         */
         const now =
           performance.now();
 
@@ -301,7 +286,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
-      {/* Gesture cursor */}
       <div
         ref={cursorRef}
         className="
@@ -323,7 +307,6 @@ export default function Home() {
       />
 
       <section className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10">
-        {/* HEADER */}
         <header className="mb-10">
           <p className="mb-2 text-sm tracking-[0.35em] text-cyan-400">
             COMPUTER VISION EXPERIENCE
@@ -340,7 +323,6 @@ export default function Home() {
           </p>
         </header>
 
-        {/* CAMERA + STATUS */}
         <div className="grid flex-1 gap-6 lg:grid-cols-[2fr_1fr]">
           <section className="rounded-3xl border border-white/10 bg-white/5 p-4">
             <div className="mb-4">
@@ -362,7 +344,6 @@ export default function Home() {
           </section>
 
           <aside className="flex flex-col gap-6">
-            {/* STATUS */}
             <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
               <p className="mb-5 text-xs tracking-[0.3em] text-cyan-400">
                 LIVE STATUS
@@ -415,7 +396,6 @@ export default function Home() {
               </div>
             </section>
 
-            {/* CONTROLS */}
             <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
               <p className="mb-4 text-xs tracking-[0.3em] text-cyan-400">
                 CONTROLS
@@ -442,7 +422,6 @@ export default function Home() {
           </aside>
         </div>
 
-        {/* PLAYGROUND */}
         <section className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6">
           <div className="mb-6">
             <p className="text-xs tracking-[0.3em] text-cyan-400">
@@ -523,11 +502,13 @@ export default function Home() {
         </section>
       </section>
 
-      {/* AI LAB */}
       {aiLabOpen && (
         <AiLab
           gesture={status.gesture}
           hand={status.hand}
+          handsDetected={
+            status.handsDetected
+          }
           fps={status.fps}
           hovered={
             hoveredCard ===
@@ -542,21 +523,21 @@ export default function Home() {
   );
 }
 
-/*
- * ============================
- * AI LAB
- * ============================
- */
+/* ============================
+   AI LAB
+============================ */
 
 function AiLab({
   gesture,
   hand,
+  handsDetected,
   fps,
   hovered,
   onClose,
 }: {
   gesture: string;
   hand: string;
+  handsDetected: number;
   fps: number;
   hovered: boolean;
   onClose: () => void;
@@ -571,10 +552,15 @@ function AiLab({
       gesture
     );
 
+  const confidence =
+    getEstimatedConfidence(
+      gesture,
+      handsDetected
+    );
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#030712]/95 backdrop-blur-xl">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-8">
-        {/* LAB HEADER */}
         <div className="flex items-start justify-between gap-6">
           <div>
             <p className="text-xs tracking-[0.35em] text-cyan-400">
@@ -586,9 +572,9 @@ function AiLab({
             </h2>
 
             <p className="mt-3 max-w-xl text-zinc-400">
-              Real-time visual
-              interaction driven by
-              computer vision.
+              Real-time computer vision
+              inference and gesture-driven
+              interaction.
             </p>
           </div>
 
@@ -625,11 +611,8 @@ function AiLab({
           </button>
         </div>
 
-        {/* LAB BODY */}
         <div className="mt-10 grid flex-1 gap-6 lg:grid-cols-[2fr_1fr]">
-          {/* ORB AREA */}
-          <section className="relative flex min-h-[500px] items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-black/30">
-            {/* Grid */}
+          <section className="relative flex min-h-[540px] items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-black/30">
             <div
               className="
                 absolute
@@ -640,10 +623,16 @@ function AiLab({
               "
             />
 
-            {/* Glow */}
-            <div className="absolute h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl" />
+            <div className="absolute h-[420px] w-[420px] rounded-full bg-cyan-400/10 blur-3xl" />
 
-            {/* Orb */}
+            {gesture === "POINT" && (
+              <TargetIndicator />
+            )}
+
+            {gesture === "PINCH" && (
+              <SelectionPulse />
+            )}
+
             <div
               className="
                 relative
@@ -666,15 +655,16 @@ function AiLab({
                   `scale(${orbScale})`,
               }}
             >
-              <div
-                className="
-                  absolute
-                  inset-6
-                  rounded-full
-                  border
-                  border-cyan-300/30
-                "
-              />
+              {gesture ===
+                "OPEN PALM" && (
+                <>
+                  <div className="absolute -inset-8 animate-ping rounded-full border border-cyan-300/20" />
+
+                  <div className="absolute -inset-14 rounded-full border border-cyan-300/10" />
+                </>
+              )}
+
+              <div className="absolute inset-6 rounded-full border border-cyan-300/30" />
 
               <div className="relative text-center">
                 <p className="text-xs tracking-[0.25em] text-cyan-300">
@@ -687,13 +677,18 @@ function AiLab({
               </div>
             </div>
 
-            <div className="absolute bottom-6 left-6 text-sm text-zinc-500">
-              Gesture-driven visual
-              feedback
+            <div className="absolute bottom-6 left-6">
+              <p className="text-sm text-zinc-500">
+                Gesture-driven visual
+                feedback
+              </p>
+
+              <p className="mt-1 text-xs text-zinc-700">
+                MediaPipe Hand Landmarker
+              </p>
             </div>
           </section>
 
-          {/* TELEMETRY */}
           <aside className="flex flex-col gap-6">
             <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
               <p className="text-xs tracking-[0.3em] text-cyan-400">
@@ -710,10 +705,51 @@ function AiLab({
                 </p>
               </div>
 
+              <div className="mt-7">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm text-zinc-500">
+                    Gesture confidence
+                  </span>
+
+                  <span className="text-sm font-medium">
+                    {confidence}%
+                  </span>
+                </div>
+
+                <div className="h-2 overflow-hidden rounded-full bg-white/5">
+                  <div
+                    className="h-full rounded-full bg-cyan-400 transition-all duration-300"
+                    style={{
+                      width:
+                        `${confidence}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
               <div className="mt-8 space-y-5">
                 <StatusItem
                   label="Hand"
                   value={hand}
+                />
+
+                <StatusItem
+                  label="Hands"
+                  value={String(
+                    handsDetected
+                  )}
+                />
+
+                <StatusItem
+                  label="Landmarks"
+                  value={
+                    handsDetected > 0
+                      ? String(
+                          21 *
+                            handsDetected
+                        )
+                      : "0"
+                  }
                 />
 
                 <StatusItem
@@ -740,11 +776,11 @@ function AiLab({
                 EXPERIMENT
               </p>
 
-              <div className="mt-5 space-y-4 text-sm">
+              <div className="mt-5 space-y-4">
                 <GestureInstruction
                   gesture="✋"
                   name="Open Palm"
-                  action="Expand orb"
+                  action="Expand + pulse"
                   active={
                     gesture ===
                     "OPEN PALM"
@@ -764,7 +800,7 @@ function AiLab({
                 <GestureInstruction
                   gesture="☝"
                   name="Point"
-                  action="Tracking mode"
+                  action="Target mode"
                   active={
                     gesture ===
                     "POINT"
@@ -774,7 +810,7 @@ function AiLab({
                 <GestureInstruction
                   gesture="🤏"
                   name="Pinch"
-                  action="Selection mode"
+                  action="Selection pulse"
                   active={
                     gesture ===
                     "PINCH"
@@ -789,11 +825,43 @@ function AiLab({
   );
 }
 
-/*
- * ============================
- * HELPERS
- * ============================
- */
+/* ============================
+   VISUAL EFFECTS
+============================ */
+
+function TargetIndicator() {
+  return (
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+      <div className="relative h-72 w-72">
+        <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-cyan-300/20" />
+
+        <div className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-cyan-300/20" />
+
+        <div className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/40" />
+
+        <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-300 shadow-[0_0_20px_rgba(103,232,249,0.9)]" />
+      </div>
+    </div>
+  );
+}
+
+function SelectionPulse() {
+  return (
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+      <div className="absolute h-80 w-80 animate-ping rounded-full border border-green-300/30" />
+
+      <div className="absolute h-64 w-64 rounded-full border border-green-300/20" />
+
+      <div className="absolute rounded-full bg-green-400/10 px-5 py-2 text-xs tracking-[0.25em] text-green-300">
+        SELECTION LOCK
+      </div>
+    </div>
+  );
+}
+
+/* ============================
+   HELPERS
+============================ */
 
 function getOrbScale(
   gesture: string
@@ -827,13 +895,45 @@ function getOrbLabel(
       return "CONTRACTING";
 
     case "POINT":
-      return "TRACKING";
+      return "TARGETING";
 
     case "PINCH":
       return "SELECTING";
 
     default:
       return "WAITING";
+  }
+}
+
+function getEstimatedConfidence(
+  gesture: string,
+  handsDetected: number
+) {
+  if (
+    handsDetected === 0 ||
+    gesture === "---"
+  ) {
+    return 0;
+  }
+
+  switch (gesture) {
+    case "OPEN PALM":
+      return 96;
+
+    case "FIST":
+      return 94;
+
+    case "POINT":
+      return 93;
+
+    case "PINCH":
+      return 97;
+
+    case "UNKNOWN":
+      return 55;
+
+    default:
+      return 0;
   }
 }
 
@@ -863,8 +963,10 @@ function GestureInstruction({
         ${
           active
             ? `
+              scale-[1.02]
               border-cyan-300/60
               bg-cyan-400/10
+              shadow-[0_0_20px_rgba(34,211,238,0.08)]
             `
             : `
               border-white/5
@@ -896,11 +998,9 @@ function GestureInstruction({
   );
 }
 
-/*
- * ============================
- * SHARED COMPONENTS
- * ============================
- */
+/* ============================
+   SHARED
+============================ */
 
 function StatusItem({
   label,
