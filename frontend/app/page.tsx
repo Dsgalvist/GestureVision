@@ -474,20 +474,20 @@ export default function Home() {
 
           <div className="grid gap-4 md:grid-cols-3">
             <PlaygroundCard
-              id="Projects"
-              title="Projects"
-              description="Explore featured development projects."
+              id="Gesture Playground"
+              title="Gesture Playground"
+              description="Test gesture-controlled interactions and challenges."
               hovered={
                 hoveredCard ===
-                "Projects"
+                "Gesture Playground"
               }
               selected={
                 selectedCard ===
-                "Projects"
+                "Gesture Playground"
               }
               onClick={() =>
                 handleCardSelection(
-                  "Projects"
+                  "Gesture Playground"
                 )
               }
             />
@@ -495,7 +495,7 @@ export default function Home() {
             <PlaygroundCard
               id="AI Lab"
               title="AI Lab"
-              description="Experiment with computer vision interactions."
+              description="Experiment with real-time gesture-driven 3D interactions."
               hovered={
                 hoveredCard ===
                 "AI Lab"
@@ -512,20 +512,20 @@ export default function Home() {
             />
 
             <PlaygroundCard
-              id="About"
-              title="About"
-              description="Learn more about the developer."
+              id="How It Works"
+              title="How It Works"
+              description="Explore how computer vision turns hand movements into interactions."
               hovered={
                 hoveredCard ===
-                "About"
+                "How It Works"
               }
               selected={
                 selectedCard ===
-                "About"
+                "How It Works"
               }
               onClick={() =>
                 handleCardSelection(
-                  "About"
+                  "How It Works"
                 )
               }
             />
