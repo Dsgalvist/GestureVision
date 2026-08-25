@@ -58,6 +58,13 @@ export default function Home() {
   const lastStatusUpdateRef =
     useRef(0);
 
+  // Smooth cursor position
+  const smoothXRef =
+    useRef<number | null>(null);
+
+  const smoothYRef =
+    useRef<number | null>(null);
+
   const handleTrackingFrame =
     useCallback(
       (
@@ -78,12 +85,51 @@ export default function Home() {
           cursorX !== null &&
           cursorY !== null
         ) {
+          /*
+           * Cursor smoothing.
+           *
+           * Lower value:
+           * smoother but slower.
+           *
+           * Higher value:
+           * faster but more jitter.
+           */
+          const smoothingFactor =
+            0.28;
+
+          if (
+            smoothXRef.current ===
+              null ||
+            smoothYRef.current ===
+              null
+          ) {
+            smoothXRef.current =
+              cursorX;
+
+            smoothYRef.current =
+              cursorY;
+          } else {
+            smoothXRef.current +=
+              (
+                cursorX -
+                smoothXRef.current
+              ) *
+              smoothingFactor;
+
+            smoothYRef.current +=
+              (
+                cursorY -
+                smoothYRef.current
+              ) *
+              smoothingFactor;
+          }
+
           const screenX =
-            cursorX *
+            smoothXRef.current *
             window.innerWidth;
 
           const screenY =
-            cursorY *
+            smoothYRef.current *
             window.innerHeight;
 
           cursorRef.current.style.transform =
@@ -183,8 +229,25 @@ export default function Home() {
         } else if (
           cursorRef.current
         ) {
+          /*
+           * Hide cursor when
+           * the hand disappears.
+           */
           cursorRef.current.style.opacity =
             "0";
+
+          /*
+           * Reset smoothing so
+           * the cursor doesn't
+           * travel from the old
+           * position when the hand
+           * returns.
+           */
+          smoothXRef.current =
+            null;
+
+          smoothYRef.current =
+            null;
 
           if (
             hoveredRef.current !==
@@ -217,10 +280,13 @@ export default function Home() {
           setStatus({
             gesture:
               data.gesture,
+
             hand:
               data.hand,
+
             handsDetected:
               data.handsDetected,
+
             fps:
               data.fps,
           });
@@ -241,7 +307,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
-
       <div
         ref={cursorRef}
         className="
@@ -263,7 +328,6 @@ export default function Home() {
       />
 
       <section className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10">
-
         <header className="mb-10">
           <p className="mb-2 text-sm tracking-[0.35em] text-cyan-400">
             COMPUTER VISION EXPERIENCE
@@ -281,9 +345,7 @@ export default function Home() {
         </header>
 
         <div className="grid flex-1 gap-6 lg:grid-cols-[2fr_1fr]">
-
           <section className="rounded-3xl border border-white/10 bg-white/5 p-4">
-
             <div className="mb-4">
               <h2 className="text-lg font-semibold">
                 Live Camera
@@ -300,19 +362,15 @@ export default function Home() {
                 handleTrackingFrame
               }
             />
-
           </section>
 
           <aside className="flex flex-col gap-6">
-
             <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
-
               <p className="mb-5 text-xs tracking-[0.3em] text-cyan-400">
                 LIVE STATUS
               </p>
 
               <div className="space-y-5">
-
                 <StatusItem
                   label="Gesture"
                   value={
@@ -356,12 +414,10 @@ export default function Home() {
                     "---"
                   }
                 />
-
               </div>
             </section>
 
             <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
-
               <p className="mb-4 text-xs tracking-[0.3em] text-cyan-400">
                 CONTROLS
               </p>
@@ -385,17 +441,12 @@ export default function Home() {
                   ✊ Fist — Back
                 </p>
               </div>
-
             </section>
-
           </aside>
-
         </div>
 
         <section className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6">
-
           <div className="mb-6">
-
             <p className="text-xs tracking-[0.3em] text-cyan-400">
               INTERACTIVE PLAYGROUND
             </p>
@@ -411,11 +462,9 @@ export default function Home() {
               index finger to select
               it.
             </p>
-
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-
             <PlaygroundCard
               id="Projects"
               title="Projects"
@@ -472,13 +521,9 @@ export default function Home() {
                 )
               }
             />
-
           </div>
-
         </section>
-
       </section>
-
     </main>
   );
 }
@@ -492,7 +537,6 @@ function StatusItem({
 }) {
   return (
     <div className="flex items-center justify-between border-b border-white/10 pb-4 last:border-none last:pb-0">
-
       <span className="text-sm text-zinc-400">
         {label}
       </span>
@@ -500,7 +544,6 @@ function StatusItem({
       <span className="font-medium">
         {value}
       </span>
-
     </div>
   );
 }
@@ -558,7 +601,6 @@ function PlaygroundCard({
       `}
     >
       <div className="mb-5 flex items-center justify-between">
-
         <span className="text-xs tracking-[0.2em] text-cyan-400">
           GESTURE TARGET
         </span>
@@ -568,7 +610,6 @@ function PlaygroundCard({
             SELECTED
           </span>
         )}
-
       </div>
 
       <p className="text-lg font-semibold">
@@ -578,7 +619,6 @@ function PlaygroundCard({
       <p className="mt-2 text-sm text-zinc-400">
         {description}
       </p>
-
     </button>
   );
 }
