@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -625,12 +626,27 @@ function GesturePlayground({
 }) {
   const [score, setScore] = useState(0);
   const [hits, setHits] = useState(0);
+  const [misses, setMisses] = useState(0);
+
+  const [reactionTime, setReactionTime] =
+    useState<number | null>(null);
+
+  const [bestReaction, setBestReaction] =
+    useState<number | null>(null);
 
   const [targetPosition, setTargetPosition] =
     useState({
       x: 50,
       y: 50,
     });
+
+  const targetShownAtRef =
+    useRef(performance.now());
+
+  useEffect(() => {
+    targetShownAtRef.current =
+      performance.now();
+  }, [targetPosition]);
 
   function moveTarget() {
     setTargetPosition({
@@ -640,10 +656,52 @@ function GesturePlayground({
   }
 
   function hitTarget() {
-    setScore((currentScore) => currentScore + 1);
-    setHits((currentHits) => currentHits + 1);
+    const currentReaction =
+      (performance.now() -
+        targetShownAtRef.current) /
+      1000;
+
+    setReactionTime(
+      currentReaction
+    );
+
+    setBestReaction(
+      (currentBest) =>
+        currentBest === null
+          ? currentReaction
+          : Math.min(
+              currentBest,
+              currentReaction
+            )
+    );
+
+    setScore(
+      (currentScore) =>
+        currentScore + 1
+    );
+
+    setHits(
+      (currentHits) =>
+        currentHits + 1
+    );
+
     moveTarget();
   }
+
+  function missTarget() {
+    setMisses(
+      (currentMisses) =>
+        currentMisses + 1
+    );
+  }
+
+  const attempts =
+    hits + misses;
+
+  const accuracy =
+    attempts > 0
+      ? (hits / attempts) * 100
+      : 0;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#030712]/95 backdrop-blur-xl">
@@ -682,7 +740,7 @@ function GesturePlayground({
         </div>
 
         <section className="mt-10 flex flex-1 flex-col rounded-3xl border border-white/10 bg-white/5 p-6">
-          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div className="flex flex-col gap-5">
             <div>
               <p className="text-xs tracking-[0.3em] text-cyan-400">
                 PRECISION CHALLENGE
@@ -697,29 +755,62 @@ function GesturePlayground({
               </p>
             </div>
 
-            <div className="flex gap-3">
-              <div className="min-w-24 rounded-2xl border border-white/10 bg-black/20 px-5 py-3">
-                <p className="text-xs tracking-[0.2em] text-zinc-500">
-                  SCORE
-                </p>
-                <p className="mt-1 text-2xl font-bold text-cyan-300">
-                  {score}
-                </p>
-              </div>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+              <MetricCard
+                label="SCORE"
+                value={String(score)}
+                valueClass="text-cyan-300"
+              />
 
-              <div className="min-w-24 rounded-2xl border border-white/10 bg-black/20 px-5 py-3">
-                <p className="text-xs tracking-[0.2em] text-zinc-500">
-                  HITS
-                </p>
-                <p className="mt-1 text-2xl font-bold text-green-300">
-                  {hits}
-                </p>
-              </div>
+              <MetricCard
+                label="HITS"
+                value={String(hits)}
+                valueClass="text-green-300"
+              />
+
+              <MetricCard
+                label="MISSES"
+                value={String(misses)}
+                valueClass="text-red-300"
+              />
+
+              <MetricCard
+                label="ACCURACY"
+                value={`${accuracy.toFixed(1)}%`}
+                valueClass="text-white"
+              />
+
+              <MetricCard
+                label="REACTION"
+                value={
+                  reactionTime !== null
+                    ? `${reactionTime.toFixed(2)}s`
+                    : "---"
+                }
+                valueClass="text-white"
+              />
+
+              <MetricCard
+                label="BEST"
+                value={
+                  bestReaction !== null
+                    ? `${bestReaction.toFixed(2)}s`
+                    : "---"
+                }
+                valueClass="text-yellow-200"
+              />
             </div>
           </div>
 
-          <div className="relative mt-6 min-h-[430px] flex-1 overflow-hidden rounded-3xl border border-white/10 bg-black/30">
-            <div
+          <button
+            type="button"
+            data-gesture-clickable="true"
+            data-gesture-id="Precision Playground"
+            onClick={missTarget}
+            aria-label="Precision challenge play area"
+            className="relative mt-6 min-h-[430px] flex-1 cursor-default overflow-hidden rounded-3xl border border-white/10 bg-black/30 text-left"
+          >
+            <span
               className="
                 pointer-events-none absolute inset-0 opacity-20
                 [background-image:linear-gradient(rgba(34,211,238,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.15)_1px,transparent_1px)]
@@ -727,15 +818,30 @@ function GesturePlayground({
               "
             />
 
-            <div className="pointer-events-none absolute left-5 top-5 z-10 rounded-full border border-white/10 bg-black/40 px-4 py-2 text-xs text-zinc-400 backdrop-blur">
+            <span className="pointer-events-none absolute left-5 top-5 z-10 rounded-full border border-white/10 bg-black/40 px-4 py-2 text-xs text-zinc-400 backdrop-blur">
               POINT → AIM · PINCH → HIT
-            </div>
+            </span>
 
-            <button
+            <span
+              role="button"
+              tabIndex={0}
               data-gesture-clickable="true"
               data-gesture-id="Precision Target"
-              onClick={hitTarget}
               aria-label="Precision target"
+              onClick={(event) => {
+                event.stopPropagation();
+                hitTarget();
+              }}
+              onKeyDown={(event) => {
+                if (
+                  event.key === "Enter" ||
+                  event.key === " "
+                ) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  hitTarget();
+                }
+              }}
               className={`
                 absolute z-20 h-20 w-20 -translate-x-1/2 -translate-y-1/2
                 rounded-full border-2
@@ -754,10 +860,34 @@ function GesturePlayground({
             >
               <span className="absolute inset-3 rounded-full border border-white/60" />
               <span className="absolute inset-7 rounded-full bg-white" />
-            </button>
-          </div>
+            </span>
+          </button>
         </section>
       </div>
+    </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  valueClass,
+}: {
+  label: string;
+  value: string;
+  valueClass: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+      <p className="text-[11px] tracking-[0.18em] text-zinc-500">
+        {label}
+      </p>
+
+      <p
+        className={`mt-1 text-xl font-bold ${valueClass}`}
+      >
+        {value}
+      </p>
     </div>
   );
 }
