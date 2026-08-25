@@ -543,7 +543,6 @@ export default function Home() {
             status.fps
           }
 
-          // NEW
           cursorX={
             status.cursorX
           }
@@ -573,11 +572,8 @@ function AiLab({
   hand,
   handsDetected,
   fps,
-
-  // NEW
   cursorX,
   cursorY,
-
   hovered,
   onClose,
 }: {
@@ -585,11 +581,8 @@ function AiLab({
   hand: string;
   handsDetected: number;
   fps: number;
-
-  // NEW
   cursorX: number | null;
   cursorY: number | null;
-
   hovered: boolean;
   onClose: () => void;
 }) {
@@ -602,8 +595,10 @@ function AiLab({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#030712]/95 backdrop-blur-xl">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-8">
+
         {/* Lab header */}
         <div className="flex items-start justify-between gap-6">
+
           <div>
             <p className="text-xs tracking-[0.35em] text-cyan-400">
               GESTUREVISION
@@ -651,12 +646,15 @@ function AiLab({
           >
             CLOSE LAB
           </button>
+
         </div>
 
         {/* Lab body */}
         <div className="mt-10 grid flex-1 gap-6 lg:grid-cols-[2fr_1fr]">
+
           {/* 3D visualization */}
           <section className="relative min-h-[540px] overflow-hidden rounded-3xl border border-white/10 bg-black/30">
+
             <div
               className="
                 pointer-events-none
@@ -674,8 +672,6 @@ function AiLab({
                 gesture={
                   gesture
                 }
-
-                // NEW
                 cursorX={
                   cursorX
                 }
@@ -685,6 +681,7 @@ function AiLab({
               />
             </div>
 
+            {/* 3D RESPONSE ENGINE + NEW TELEMETRY */}
             <div className="pointer-events-none absolute left-6 top-6 z-10">
               <p className="text-xs tracking-[0.3em] text-cyan-400">
                 3D RESPONSE ENGINE
@@ -697,6 +694,51 @@ function AiLab({
                   {gesture}
                 </span>
               </p>
+
+              {/* NEW: LIVE 3D CONTROL TELEMETRY */}
+              <div className="mt-4 rounded-xl border border-white/10 bg-black/30 px-4 py-3 backdrop-blur">
+                <p className="text-[11px] tracking-[0.25em] text-cyan-300">
+                  3D CONTROL
+                </p>
+
+                <div className="mt-3 space-y-1 text-xs">
+                  <p className="text-zinc-500">
+                    X:{" "}
+
+                    <span className="font-medium text-white">
+                      {cursorX !== null
+                        ? cursorX.toFixed(2)
+                        : "---"}
+                    </span>
+                  </p>
+
+                  <p className="text-zinc-500">
+                    Y:{" "}
+
+                    <span className="font-medium text-white">
+                      {cursorY !== null
+                        ? cursorY.toFixed(2)
+                        : "---"}
+                    </span>
+                  </p>
+
+                  <p className="text-zinc-500">
+                    Mode:{" "}
+
+                    <span
+                      className={
+                        gesture === "POINT"
+                          ? "font-medium text-cyan-300"
+                          : "font-medium text-white"
+                      }
+                    >
+                      {gesture === "POINT"
+                        ? "HAND ROTATION"
+                        : "IDLE"}
+                    </span>
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="pointer-events-none absolute bottom-6 left-6 z-10">
@@ -723,16 +765,20 @@ function AiLab({
                 ROTATION MODE
               </div>
             )}
+
           </section>
 
           {/* Telemetry */}
           <aside className="flex flex-col gap-6">
+
             <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+
               <p className="text-xs tracking-[0.3em] text-cyan-400">
                 LIVE INFERENCE
               </p>
 
               <div className="mt-6">
+
                 <p className="text-sm text-zinc-500">
                   Current gesture
                 </p>
@@ -740,11 +786,14 @@ function AiLab({
                 <p className="mt-2 break-words text-3xl font-bold">
                   {gesture}
                 </p>
+
               </div>
 
               {/* Confidence */}
               <div className="mt-7">
+
                 <div className="mb-2 flex items-center justify-between">
+
                   <span className="text-sm text-zinc-500">
                     Gesture confidence
                   </span>
@@ -752,9 +801,11 @@ function AiLab({
                   <span className="text-sm font-medium">
                     {confidence}%
                   </span>
+
                 </div>
 
                 <div className="h-2 overflow-hidden rounded-full bg-white/5">
+
                   <div
                     className="h-full rounded-full bg-cyan-400 transition-all duration-300"
                     style={{
@@ -762,14 +813,17 @@ function AiLab({
                         `${confidence}%`,
                     }}
                   />
+
                 </div>
 
                 <p className="mt-2 text-xs text-zinc-600">
                   Experimental UI score
                 </p>
+
               </div>
 
               <div className="mt-8 space-y-5">
+
                 <StatusItem
                   label="Hand"
                   value={hand}
@@ -815,16 +869,20 @@ function AiLab({
                   label="Mode"
                   value="Real-time"
                 />
+
               </div>
+
             </section>
 
             {/* Experiments */}
             <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+
               <p className="text-xs tracking-[0.3em] text-cyan-400">
                 EXPERIMENT
               </p>
 
               <div className="mt-5 space-y-4">
+
                 <GestureInstruction
                   gesture="✋"
                   name="Open Palm"
@@ -864,11 +922,17 @@ function AiLab({
                     "PINCH"
                   }
                 />
+
               </div>
+
             </section>
+
           </aside>
+
         </div>
+
       </div>
+
     </div>
   );
 }
@@ -947,11 +1011,13 @@ function GestureInstruction({
         }
       `}
     >
+
       <div className="text-2xl">
         {gesture}
       </div>
 
       <div className="flex-1">
+
         <p className="font-medium">
           {name}
         </p>
@@ -959,6 +1025,7 @@ function GestureInstruction({
         <p className="text-xs text-zinc-500">
           {action}
         </p>
+
       </div>
 
       {active && (
@@ -966,6 +1033,7 @@ function GestureInstruction({
           ACTIVE
         </span>
       )}
+
     </div>
   );
 }
@@ -983,6 +1051,7 @@ function StatusItem({
 }) {
   return (
     <div className="flex items-center justify-between border-b border-white/10 pb-4 last:border-none last:pb-0">
+
       <span className="text-sm text-zinc-400">
         {label}
       </span>
@@ -990,6 +1059,7 @@ function StatusItem({
       <span className="font-medium">
         {value}
       </span>
+
     </div>
   );
 }
@@ -1046,7 +1116,9 @@ function PlaygroundCard({
         }
       `}
     >
+
       <div className="mb-5 flex items-center justify-between">
+
         <span className="text-xs tracking-[0.2em] text-cyan-400">
           GESTURE TARGET
         </span>
@@ -1056,6 +1128,7 @@ function PlaygroundCard({
             SELECTED
           </span>
         )}
+
       </div>
 
       <p className="text-lg font-semibold">
@@ -1065,6 +1138,7 @@ function PlaygroundCard({
       <p className="mt-2 text-sm text-zinc-400">
         {description}
       </p>
+
     </button>
   );
 }
