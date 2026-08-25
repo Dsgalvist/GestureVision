@@ -39,29 +39,39 @@ export default function HandTracker({
     let previousTime = performance.now();
     let previousVideoTime = -1;
 
+    /*
+     * Gesture stabilization
+     */
+    let candidateGesture = "---";
+    let candidateGestureFrames = 0;
+    let stableGesture = "---";
+
+    const requiredStableFrames = 4;
+
     async function initialize() {
       try {
         const vision = await FilesetResolver.forVisionTasks(
           "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
         );
 
-        handLandmarker = await HandLandmarker.createFromOptions(
-          vision,
-          {
-            baseOptions: {
-              modelAssetPath:
-                "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-              delegate: "GPU",
-            },
+        handLandmarker =
+          await HandLandmarker.createFromOptions(
+            vision,
+            {
+              baseOptions: {
+                modelAssetPath:
+                  "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+                delegate: "GPU",
+              },
 
-            runningMode: "VIDEO",
-            numHands: 2,
+              runningMode: "VIDEO",
+              numHands: 2,
 
-            minHandDetectionConfidence: 0.7,
-            minHandPresenceConfidence: 0.7,
-            minTrackingConfidence: 0.7,
-          }
-        );
+              minHandDetectionConfidence: 0.7,
+              minHandPresenceConfidence: 0.7,
+              minTrackingConfidence: 0.7,
+            }
+          );
 
         setModelReady(true);
 
@@ -158,8 +168,19 @@ export default function HandTracker({
           const handsDetected =
             results.landmarks.length;
 
+          /*
+           * Reset gesture stabilization
+           * when no hands are detected.
+           */
+          if (handsDetected === 0) {
+            candidateGesture = "---";
+            candidateGestureFrames = 0;
+            stableGesture = "---";
+          }
+
           let detectedHand = "---";
-          let detectedGesture = "---";
+          let detectedGesture =
+            stableGesture;
 
           let cursorX: number | null = null;
           let cursorY: number | null = null;
@@ -172,6 +193,9 @@ export default function HandTracker({
             const landmarks =
               results.landmarks[i];
 
+            /*
+             * Draw MediaPipe connections
+             */
             drawingUtils.drawConnectors(
               landmarks,
               HandLandmarker.HAND_CONNECTIONS,
@@ -180,6 +204,9 @@ export default function HandTracker({
               }
             );
 
+            /*
+             * Draw 21 landmarks
+             */
             drawingUtils.drawLandmarks(
               landmarks,
               {
@@ -187,6 +214,9 @@ export default function HandTracker({
               }
             );
 
+            /*
+             * First hand controls cursor
+             */
             if (
               i === 0 &&
               landmarks[8]
@@ -194,7 +224,7 @@ export default function HandTracker({
               const indexTip =
                 landmarks[8];
 
-              // Camera is mirrored
+              // Camera display is mirrored
               cursorX =
                 1 - indexTip.x;
 
@@ -202,6 +232,9 @@ export default function HandTracker({
                 indexTip.y;
             }
 
+            /*
+             * Detect Left / Right hand
+             */
             if (
               results.handedness[i] &&
               results.handedness[i][0]
@@ -211,14 +244,58 @@ export default function HandTracker({
                   .categoryName;
             }
 
+            /*
+             * Gesture recognition +
+             * stabilization
+             */
             if (i === 0) {
-              detectedGesture =
+              const rawGesture =
                 recognizeGesture(
                   landmarks
                 );
+
+              /*
+               * Same gesture as previous
+               * candidate frame.
+               */
+              if (
+                rawGesture ===
+                candidateGesture
+              ) {
+                candidateGestureFrames++;
+              } else {
+                /*
+                 * A new gesture appeared.
+                 * Start counting again.
+                 */
+                candidateGesture =
+                  rawGesture;
+
+                candidateGestureFrames =
+                  1;
+              }
+
+              /*
+               * Only accept the gesture
+               * once it has survived
+               * enough consecutive frames.
+               */
+              if (
+                candidateGestureFrames >=
+                requiredStableFrames
+              ) {
+                stableGesture =
+                  candidateGesture;
+              }
+
+              detectedGesture =
+                stableGesture;
             }
           }
 
+          /*
+           * FPS calculation
+           */
           const currentTime =
             performance.now();
 
@@ -234,14 +311,22 @@ export default function HandTracker({
           previousTime =
             currentTime;
 
+          /*
+           * Send tracking information
+           * to page.tsx
+           */
           onTrackingFrame({
             gesture:
               detectedGesture,
+
             hand:
               detectedHand,
+
             handsDetected,
+
             fps:
               Math.round(fps),
+
             cursorX,
             cursorY,
           });
@@ -306,6 +391,7 @@ export default function HandTracker({
       {cameraActive && (
         <div className="absolute right-4 top-4 rounded-full bg-black/60 px-3 py-1.5 text-xs backdrop-blur">
           <span className="mr-2 inline-block h-2 w-2 rounded-full bg-green-400" />
+
           AI Vision Active
         </div>
       )}
@@ -326,6 +412,10 @@ function recognizeGesture(
   const indexTip =
     landmarks[8];
 
+  /*
+   * Distance between thumb
+   * and index finger.
+   */
   const pinchDistance =
     Math.sqrt(
       Math.pow(
@@ -340,12 +430,18 @@ function recognizeGesture(
         )
     );
 
+  /*
+   * PINCH
+   */
   if (
     pinchDistance < 0.06
   ) {
     return "PINCH";
   }
 
+  /*
+   * Finger states
+   */
   const indexOpen =
     landmarks[8].y <
     landmarks[6].y;
@@ -362,6 +458,9 @@ function recognizeGesture(
     landmarks[20].y <
     landmarks[18].y;
 
+  /*
+   * OPEN PALM
+   */
   if (
     indexOpen &&
     middleOpen &&
@@ -371,6 +470,9 @@ function recognizeGesture(
     return "OPEN PALM";
   }
 
+  /*
+   * FIST
+   */
   if (
     !indexOpen &&
     !middleOpen &&
@@ -380,6 +482,9 @@ function recognizeGesture(
     return "FIST";
   }
 
+  /*
+   * POINT
+   */
   if (
     indexOpen &&
     !middleOpen &&
