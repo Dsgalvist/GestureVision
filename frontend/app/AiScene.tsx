@@ -11,10 +11,14 @@ import * as THREE from "three";
 
 type AiSceneProps = {
   gesture: string;
+  cursorX: number | null;
+  cursorY: number | null;
 };
 
 export default function AiScene({
   gesture,
+  cursorX,
+  cursorY,
 }: AiSceneProps) {
   return (
     <div className="h-full w-full">
@@ -53,6 +57,8 @@ export default function AiScene({
         >
           <GestureObject
             gesture={gesture}
+            cursorX={cursorX}
+            cursorY={cursorY}
           />
         </Float>
 
@@ -68,8 +74,12 @@ export default function AiScene({
 
 function GestureObject({
   gesture,
+  cursorX,
+  cursorY,
 }: {
   gesture: string;
+  cursorX: number | null;
+  cursorY: number | null;
 }) {
   const meshRef =
     useRef<THREE.Mesh>(null);
@@ -96,11 +106,33 @@ function GestureObject({
       case "POINT":
         targetScale = 1;
 
-        meshRef.current.rotation.y +=
-          delta * 2;
+        if (
+          cursorX !== null &&
+          cursorY !== null
+        ) {
+          const targetRotationY =
+            (cursorX - 0.5) *
+            Math.PI *
+            1.5;
 
-        meshRef.current.rotation.x +=
-          delta * 0.5;
+          const targetRotationX =
+            (cursorY - 0.5) *
+            Math.PI;
+
+          meshRef.current.rotation.y =
+            THREE.MathUtils.lerp(
+              meshRef.current.rotation.y,
+              targetRotationY,
+              0.08
+            );
+
+          meshRef.current.rotation.x =
+            THREE.MathUtils.lerp(
+              meshRef.current.rotation.x,
+              targetRotationX,
+              0.08
+            );
+        }
 
         break;
 
