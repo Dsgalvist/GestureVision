@@ -65,6 +65,11 @@ export default function Home() {
     setGesturePlaygroundOpen,
   ] = useState(false);
 
+  const [
+    howItWorksOpen,
+    setHowItWorksOpen,
+  ] = useState(false);
+
   const cursorRef =
     useRef<HTMLDivElement>(
       null
@@ -303,6 +308,10 @@ export default function Home() {
       setGesturePlaygroundOpen(true);
     }
 
+    if (card === "How It Works") {
+      setHowItWorksOpen(true);
+    }
+
     console.log(
       `GestureVision selected: ${card}`
     );
@@ -321,6 +330,17 @@ export default function Home() {
 
   function closeGesturePlayground() {
     setGesturePlaygroundOpen(false);
+
+    setSelectedCard(null);
+
+    setHoveredCard(null);
+
+    hoveredRef.current =
+      null;
+  }
+
+  function closeHowItWorks() {
+    setHowItWorksOpen(false);
 
     setSelectedCard(null);
 
@@ -567,6 +587,19 @@ export default function Home() {
           }
           onClose={
             closeGesturePlayground
+          }
+        />
+      )}
+
+      {/* HOW IT WORKS */}
+      {howItWorksOpen && (
+        <HowItWorks
+          hovered={
+            hoveredCard ===
+            "Close How It Works"
+          }
+          onClose={
+            closeHowItWorks
           }
         />
       )}
@@ -888,6 +921,160 @@ function MetricCard({
       >
         {value}
       </p>
+    </div>
+  );
+}
+
+/* ============================
+   HOW IT WORKS
+============================ */
+
+function HowItWorks({
+  hovered,
+  onClose,
+}: {
+  hovered: boolean;
+  onClose: () => void;
+}) {
+  const pipeline = [
+    {
+      step: "01",
+      title: "Camera",
+      description:
+        "Captures live video frames from the browser camera.",
+    },
+    {
+      step: "02",
+      title: "MediaPipe",
+      description:
+        "Processes each frame with real-time hand tracking.",
+    },
+    {
+      step: "03",
+      title: "21 Landmarks",
+      description:
+        "Maps key points across the detected hand.",
+    },
+    {
+      step: "04",
+      title: "Gesture Recognition",
+      description:
+        "Interprets landmark positions as Point, Pinch, Fist, or Open Palm.",
+    },
+    {
+      step: "05",
+      title: "Interaction Engine",
+      description:
+        "Transforms recognized hand input into application controls.",
+    },
+    {
+      step: "06",
+      title: "UI / 3D Response",
+      description:
+        "Applies the gesture to navigation, selection, and 3D interaction.",
+    },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#030712]/95 backdrop-blur-xl">
+      <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-8">
+        <div className="flex items-start justify-between gap-6">
+          <div>
+            <p className="text-xs tracking-[0.35em] text-cyan-400">
+              GESTUREVISION
+            </p>
+
+            <h2 className="mt-2 text-3xl font-bold md:text-5xl">
+              How It Works
+            </h2>
+
+            <p className="mt-3 max-w-2xl text-zinc-400">
+              See how real-time computer vision turns hand movements into interactive controls.
+            </p>
+          </div>
+
+          <button
+            data-gesture-clickable="true"
+            data-gesture-id="Close How It Works"
+            onClick={onClose}
+            className={`
+              rounded-xl border px-5 py-3 text-sm font-medium
+              transition-all duration-200
+              ${
+                hovered
+                  ? `scale-105 border-cyan-300 bg-cyan-400/10 shadow-[0_0_25px_rgba(34,211,238,0.25)]`
+                  : `border-white/10 bg-white/5`
+              }
+            `}
+          >
+            CLOSE
+          </button>
+        </div>
+
+        <section className="mt-10 flex flex-1 flex-col rounded-3xl border border-white/10 bg-white/5 p-6 md:p-8">
+          <div>
+            <p className="text-xs tracking-[0.3em] text-cyan-400">
+              GESTUREVISION PIPELINE
+            </p>
+
+            <h3 className="mt-2 text-2xl font-semibold">
+              From camera input to interaction
+            </h3>
+
+            <p className="mt-2 max-w-2xl text-sm text-zinc-400">
+              Each stage converts raw camera data into a gesture that can control the interface.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {pipeline.map(
+              (
+                item,
+                index
+              ) => (
+                <div
+                  key={item.step}
+                  className="relative rounded-2xl border border-white/10 bg-black/25 p-6"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs tracking-[0.25em] text-cyan-400">
+                      STEP {item.step}
+                    </span>
+
+                    {index <
+                      pipeline.length -
+                        1 && (
+                      <span className="text-lg text-cyan-400/50">
+                        →
+                      </span>
+                    )}
+                  </div>
+
+                  <h4 className="mt-5 text-xl font-semibold">
+                    {item.title}
+                  </h4>
+
+                  <p className="mt-2 text-sm leading-6 text-zinc-400">
+                    {
+                      item.description
+                    }
+                  </p>
+                </div>
+              )
+            )}
+          </div>
+
+          <div className="mt-8 rounded-2xl border border-cyan-300/15 bg-cyan-400/5 p-5">
+            <p className="text-xs tracking-[0.25em] text-cyan-300">
+              PIPELINE
+            </p>
+
+            <p className="mt-3 text-sm leading-7 text-zinc-300">
+              Camera → MediaPipe → 21 Landmarks → Gesture Recognition → Interaction Engine → UI / 3D Response
+            </p>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
