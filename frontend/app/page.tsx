@@ -188,13 +188,54 @@ export default function Home() {
                 Math.abs(deltaY) >
                 deadZone
               ) {
-                window.scrollBy({
-                  top:
-                    deltaY *
-                    window.innerHeight *
-                    1.15,
-                  behavior: "auto",
-                });
+                const scrollAmount =
+                  deltaY *
+                  window.innerHeight *
+                  1.15;
+
+                const elementUnderCursor =
+                  document.elementFromPoint(
+                    screenX,
+                    screenY
+                  );
+
+                let scrollContainer:
+                  HTMLElement | null =
+                  elementUnderCursor as HTMLElement | null;
+
+                while (scrollContainer) {
+                  const styles =
+                    window.getComputedStyle(
+                      scrollContainer
+                    );
+
+                  const canScrollY =
+                    (styles.overflowY ===
+                      "auto" ||
+                      styles.overflowY ===
+                        "scroll") &&
+                    scrollContainer.scrollHeight >
+                      scrollContainer.clientHeight;
+
+                  if (canScrollY) {
+                    break;
+                  }
+
+                  scrollContainer =
+                    scrollContainer.parentElement;
+                }
+
+                if (scrollContainer) {
+                  scrollContainer.scrollBy({
+                    top: scrollAmount,
+                    behavior: "auto",
+                  });
+                } else {
+                  window.scrollBy({
+                    top: scrollAmount,
+                    behavior: "auto",
+                  });
+                }
 
                 if (
                   scrollIndicatorRef.current
