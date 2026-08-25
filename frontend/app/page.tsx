@@ -104,6 +104,14 @@ export default function Home() {
   const scrollGestureActiveRef =
     useRef(false);
 
+  const scrollIndicatorRef =
+    useRef<HTMLDivElement>(
+      null
+    );
+
+  const lastScrollFeedbackRef =
+    useRef(0);
+
   const handleTrackingFrame =
     useCallback(
       (
@@ -188,8 +196,39 @@ export default function Home() {
                   behavior: "auto",
                 });
 
+                if (
+                  scrollIndicatorRef.current
+                ) {
+                  const direction =
+                    deltaY > 0
+                      ? "SCROLL DOWN ↓"
+                      : "↑ SCROLL UP";
+
+                  scrollIndicatorRef.current.textContent =
+                    direction;
+
+                  scrollIndicatorRef.current.style.opacity =
+                    "1";
+
+                  scrollIndicatorRef.current.style.transform =
+                    `translate3d(${screenX + 28}px, ${screenY - 18}px, 0)`;
+
+                  lastScrollFeedbackRef.current =
+                    performance.now();
+                }
+
                 scrollYRef.current =
                   smoothYRef.current;
+              }
+
+              if (
+                scrollIndicatorRef.current &&
+                performance.now() -
+                  lastScrollFeedbackRef.current >
+                  180
+              ) {
+                scrollIndicatorRef.current.style.opacity =
+                  "0";
               }
             }
           } else {
@@ -198,6 +237,13 @@ export default function Home() {
 
             scrollYRef.current =
               null;
+
+            if (
+              scrollIndicatorRef.current
+            ) {
+              scrollIndicatorRef.current.style.opacity =
+                "0";
+            }
           }
 
           cursorRef.current.style.transform =
@@ -299,6 +345,13 @@ export default function Home() {
 
           scrollYRef.current =
             null;
+
+          if (
+            scrollIndicatorRef.current
+          ) {
+            scrollIndicatorRef.current.style.opacity =
+              "0";
+          }
 
           if (
             hoveredRef.current !==
@@ -425,6 +478,35 @@ export default function Home() {
           bg-cyan-400/30
           opacity-0
           shadow-[0_0_25px_rgba(34,211,238,0.8)]
+          will-change-transform
+        "
+      />
+
+      {/* Gesture scroll feedback */}
+      <div
+        ref={scrollIndicatorRef}
+        className="
+          pointer-events-none
+          fixed
+          left-0
+          top-0
+          z-[101]
+          whitespace-nowrap
+          rounded-full
+          border
+          border-cyan-300/40
+          bg-[#07111f]/90
+          px-3
+          py-1.5
+          text-[11px]
+          font-medium
+          tracking-[0.18em]
+          text-cyan-300
+          opacity-0
+          shadow-[0_0_20px_rgba(34,211,238,0.25)]
+          backdrop-blur
+          transition-opacity
+          duration-150
           will-change-transform
         "
       />
