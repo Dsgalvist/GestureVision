@@ -59,6 +59,11 @@ export default function Home() {
     setAiLabOpen,
   ] = useState(false);
 
+  const [
+    gesturePlaygroundOpen,
+    setGesturePlaygroundOpen,
+  ] = useState(false);
+
   const cursorRef =
     useRef<HTMLDivElement>(
       null
@@ -293,6 +298,10 @@ export default function Home() {
       setAiLabOpen(true);
     }
 
+    if (card === "Gesture Playground") {
+      setGesturePlaygroundOpen(true);
+    }
+
     console.log(
       `GestureVision selected: ${card}`
     );
@@ -300,6 +309,17 @@ export default function Home() {
 
   function closeAiLab() {
     setAiLabOpen(false);
+
+    setSelectedCard(null);
+
+    setHoveredCard(null);
+
+    hoveredRef.current =
+      null;
+  }
+
+  function closeGesturePlayground() {
+    setGesturePlaygroundOpen(false);
 
     setSelectedCard(null);
 
@@ -533,6 +553,19 @@ export default function Home() {
         </section>
       </section>
 
+      {/* GESTURE PLAYGROUND */}
+      {gesturePlaygroundOpen && (
+        <GesturePlayground
+          hovered={
+            hoveredCard ===
+            "Close Gesture Playground"
+          }
+          onClose={
+            closeGesturePlayground
+          }
+        />
+      )}
+
       {/* AI LAB */}
       {aiLabOpen && (
         <AiLab
@@ -570,6 +603,85 @@ export default function Home() {
         />
       )}
     </main>
+  );
+}
+
+/* ============================
+   GESTURE PLAYGROUND
+============================ */
+
+function GesturePlayground({
+  hovered,
+  onClose,
+}: {
+  hovered: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#030712]/95 backdrop-blur-xl">
+      <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-8">
+        <div className="flex items-start justify-between gap-6">
+          <div>
+            <p className="text-xs tracking-[0.35em] text-cyan-400">
+              GESTUREVISION
+            </p>
+
+            <h2 className="mt-2 text-3xl font-bold md:text-5xl">
+              Gesture Playground
+            </h2>
+
+            <p className="mt-3 max-w-xl text-zinc-400">
+              Test gesture-controlled
+              interactions and challenges.
+            </p>
+          </div>
+
+          <button
+            data-gesture-clickable="true"
+            data-gesture-id="Close Gesture Playground"
+            onClick={onClose}
+            className={`
+              rounded-xl
+              border
+              px-5
+              py-3
+              text-sm
+              font-medium
+              transition-all
+              duration-200
+
+              ${
+                hovered
+                  ? `
+                    scale-105
+                    border-cyan-300
+                    bg-cyan-400/10
+                    shadow-[0_0_25px_rgba(34,211,238,0.25)]
+                  `
+                  : `
+                    border-white/10
+                    bg-white/5
+                  `
+              }
+            `}
+          >
+            CLOSE PLAYGROUND
+          </button>
+        </div>
+
+        <section className="mt-10 flex flex-1 items-center justify-center rounded-3xl border border-white/10 bg-white/5 p-6">
+          <div className="text-center">
+            <p className="text-xs tracking-[0.3em] text-cyan-400">
+              PLAYGROUND READY
+            </p>
+
+            <p className="mt-3 text-sm text-zinc-500">
+              Gesture challenge coming next.
+            </p>
+          </div>
+        </section>
+      </div>
+    </div>
   );
 }
 
